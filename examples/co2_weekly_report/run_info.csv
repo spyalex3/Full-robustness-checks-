@@ -1,0 +1,10 @@
+key,value
+input_file,C:\Users\User1\Documents\GitHub\econ-robustness-toolkit\examples\co2_weekly.csv
+run_timestamp,2026-06-22T15:12:30
+n_observations,2284
+variables,"co2, proxy"
+date_column,date
+var_maxlags_searched,8
+var_lag_selection_criterion,aic
+irf_periods,10
+breusch_godfrey_lags,4

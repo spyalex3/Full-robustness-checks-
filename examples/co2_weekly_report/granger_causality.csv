@@ -1,0 +1,3 @@
+causing,caused,test_stat,p_value,causing_granger_causes_caused_5pct
+proxy,co2,10.754909002819447,2.6855306119486183e-10,True
+co2,proxy,5864.384832614573,0.0,True

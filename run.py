@@ -2,10 +2,10 @@
 Time-series econometrics robustness toolkit.
 
 Usage:
-    python run.py path/to/data.xlsx
-    python run.py path/to/data.xlsx -o results.xlsx --maxlags 6 --irf-periods 12
+    python run.py path/to/data.csv
+    python run.py path/to/data.csv -o results_dir --maxlags 6 --irf-periods 12
 
-Point it at an Excel file where each column is a variable (one column may be a
+Point it at a CSV file where each column is a variable (one column may be a
 date/time index - it will be auto-detected). It will:
   1. Run ADF + KPSS stationarity tests on every variable.
   2. Regress every variable on all the others (OLS) and run a robustness
@@ -14,8 +14,8 @@ date/time index - it will be auto-detected). It will:
      (heteroskedasticity), Jarque-Bera (normality).
   3. Fit a VAR across all variables, run pairwise Granger causality,
      Johansen cointegration, and impulse response functions (IRFs).
-All results are written to a single Excel workbook (one sheet per test,
-plus a ReadMe sheet and an embedded IRF plot).
+All results are written as CSV files (one per test, plus a readme.csv) into
+an output directory, alongside an irf_plot.png.
 """
 
 import argparse
@@ -47,13 +47,12 @@ import pandas as pd
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description="Run a battery of time-series econometrics robustness checks on an Excel dataset.",
+        description="Run a battery of time-series econometrics robustness checks on a CSV dataset.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=__doc__,
     )
-    parser.add_argument("input", help="Path to the input Excel file (.xlsx)")
-    parser.add_argument("-o", "--output", default=None, help="Output report path (default: <input>_robustness_report.xlsx)")
-    parser.add_argument("--sheet", default="0", help="Sheet name or 0-based index to read (default: first sheet)")
+    parser.add_argument("input", help="Path to the input CSV file (.csv)")
+    parser.add_argument("-o", "--output", default=None, help="Output report directory (default: <input>_robustness_report/)")
     parser.add_argument("--date-col", default=None, help="Name of the date/time column, if not auto-detected")
     parser.add_argument("--maxlags", type=int, default=8, help="Max lags considered for VAR lag-order selection (default: 8)")
     parser.add_argument("--ic", default="aic", choices=["aic", "bic", "hqic", "fpe"], help="Information criterion for VAR lag selection (default: aic)")
@@ -66,13 +65,7 @@ def main():
     args = parse_args()
     warnings = []
 
-    sheet = args.sheet
-    try:
-        sheet = int(sheet)
-    except ValueError:
-        pass
-
-    df, date_col, dropped_cols = load_data(args.input, sheet_name=sheet, date_col=args.date_col)
+    df, date_col, dropped_cols = load_data(args.input, date_col=args.date_col)
     print(f"Loaded {df.shape[0]} observations x {df.shape[1]} variables: {list(df.columns)}")
     if date_col:
         print(f"Detected date/time index column: {date_col}")
@@ -118,7 +111,7 @@ def main():
         warnings.append(f"VAR analysis failed: {exc}")
         print(f"  WARNING: VAR analysis failed: {exc}")
 
-    output_path = args.output or os.path.splitext(args.input)[0] + "_robustness_report.xlsx"
+    output_dir = args.output or os.path.splitext(args.input)[0] + "_robustness_report"
 
     run_info_df = pd.DataFrame(
         [
@@ -134,9 +127,9 @@ def main():
         ]
     )
 
-    print(f"Writing report to {output_path} ...")
+    print(f"Writing report to {output_dir} ...")
     build_report(
-        output_path,
+        output_dir,
         run_info_df,
         stationarity_df,
         diag_df,
@@ -157,9 +150,9 @@ def main():
         except OSError:
             pass
 
-    print(f"Done. Report saved to: {os.path.abspath(output_path)}")
+    print(f"Done. Report saved to: {os.path.abspath(output_dir)}")
     if warnings:
-        print(f"({len(warnings)} warning(s) - see the 'Warnings' sheet in the report)")
+        print(f"({len(warnings)} warning(s) - see warnings.csv in the report)")
 
 
 if __name__ == "__main__":

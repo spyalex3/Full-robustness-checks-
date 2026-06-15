@@ -6,20 +6,20 @@ def _detect_date_column(df):
         if pd.api.types.is_datetime64_any_dtype(df[col]):
             return col
     for col in df.columns:
-        if df[col].dtype == object:
+        if pd.api.types.is_string_dtype(df[col]) or df[col].dtype == object:
             parsed = pd.to_datetime(df[col], errors="coerce")
             if parsed.notna().mean() > 0.95:
                 return col
     return None
 
 
-def load_data(path, sheet_name=0, date_col=None):
-    """Load an Excel workbook into a clean numeric time-series DataFrame.
+def load_data(path, date_col=None):
+    """Load a CSV file into a clean numeric time-series DataFrame.
 
     Returns (df, date_col_used) where df is indexed by the detected/declared
     date column (if any) and contains only numeric variable columns.
     """
-    df = pd.read_excel(path, sheet_name=sheet_name)
+    df = pd.read_csv(path)
     df = df.dropna(axis=1, how="all").dropna(axis=0, how="all")
 
     if date_col is None:
@@ -27,7 +27,7 @@ def load_data(path, sheet_name=0, date_col=None):
 
     if date_col is not None:
         if date_col not in df.columns:
-            raise ValueError(f"date column '{date_col}' not found in sheet")
+            raise ValueError(f"date column '{date_col}' not found in file")
         df[date_col] = pd.to_datetime(df[date_col], errors="coerce")
         df = df.sort_values(date_col).set_index(date_col)
 

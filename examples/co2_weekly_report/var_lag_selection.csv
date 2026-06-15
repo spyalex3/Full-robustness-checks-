@@ -1,0 +1,6 @@
+criterion,selected_lag
+aic,5
+bic,5
+hqic,5
+fpe,5
+used,5

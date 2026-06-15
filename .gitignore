@@ -1,4 +1,6 @@
 __pycache__/
 *.pyc
 .venv/
-*_robustness_report.xlsx
+*_robustness_report/
+!examples/co2_weekly_report/
+.claude/
